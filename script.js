@@ -4,78 +4,82 @@ const ctx = canvas.getContext("2d");
 let width = canvas.width = window.innerWidth;
 let height = canvas.height = window.innerHeight;
 
-let mouse = { x: -9999, y: -9999 };
-const squareSize = 80;
+const squareSize = 25;
 const grid = [];
+const colors = ["#FF69B4", "#FFD700", "#7FFFD4", "#FF4500", "#FFFFFF", "#9370DB"];
 
 function initGrid() {
     grid.length = 0;
-    for (let x = 0; x < width; x += squareSize) {
-        for (let y = 0; y < height; y += squareSize) {
+    const cols = Math.ceil(width / squareSize);
+    const rows = Math.ceil(height / squareSize);
+    for (let i = 0; i < cols; i++) {
+        for (let j = 0; j < rows; j++) {
             grid.push({
-                x,
-                y,
+                x: i * squareSize + (Math.random() * 10),
+                y: j * squareSize + (Math.random() * 10),
                 alpha: 0,
                 fading: false,
                 lastTouched: 0,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                rotation: Math.random() * Math.PI
             });
         }
     }
 }
 
-function getCellAt(x, y) {
-    return grid.find(cell =>
-        x >= cell.x && x < cell.x + squareSize &&
-        y >= cell.y && y < cell.y + squareSize
-    );
-}
-window.addEventListener("resize", () => {
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
-    initGrid();
-});
 window.addEventListener("mousemove", (e) => {
-    mouse.x = e.clientX;
-    mouse.y = e.clientY;
-    const cell = getCellAt(mouse.x, mouse.y);
-    if (cell && cell.alpha === 0) {
+    const col = Math.floor(e.clientX / squareSize);
+    const row = Math.floor(e.clientY / squareSize);
+    const rows = Math.ceil(height / squareSize);
+    const index = col * rows + row;
+    const cell = grid[index];
+    if (cell) {
         cell.alpha = 1;
         cell.lastTouched = Date.now();
         cell.fading = false;
     }
 });
 
-function drawGrid() {
+window.addEventListener("resize", () => {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+    initGrid();
+});
+
+function draw() {
     ctx.clearRect(0, 0, width, height);
     const now = Date.now();
     for (let i = 0; i < grid.length; i++) {
         const cell = grid[i];
-        if (cell.alpha > 0 && !cell.fading && now - cell.lastTouched > 500) {
+
+        if (cell.alpha > 0 && !cell.fading && now - cell.lastTouched > 5) {
             cell.fading = true;
         }
         if (cell.fading) {
-            cell.alpha -= 0.02;
+            cell.alpha -= 0.015;
             if (cell.alpha <= 0) {
                 cell.alpha = 0;
                 cell.fading = false;
             }
         }
         if (cell.alpha > 0) {
-            const centerX = cell.x + squareSize / 2;
-            const centerY = cell.y + squareSize / 2;
-            const gradient = ctx.createRadialGradient(
-                centerX, centerY, 5,
-                centerX, centerY, squareSize
-            );
-            gradient.addColorStop(0, `rgba(0, 255, 204, ${cell.alpha})`);
-            gradient.addColorStop(1, `rgba(0, 255, 204, 0)`);
-            ctx.strokeStyle = gradient;
-            ctx.lineWidth = 1.3;
-            ctx.strokeRect(cell.x + 0.5, cell.y + 0.5, squareSize - 1, squareSize - 1);
+            ctx.save();
+            ctx.translate(cell.x, cell.y);
+            ctx.rotate(cell.rotation);
+            ctx.globalAlpha = cell.alpha;
+            ctx.fillStyle = cell.color;
+
+            const w = 4;
+            const h = 12;
+            ctx.beginPath();
+            ctx.roundRect(-w / 2, -h / 2, w, h, 2);
+            ctx.fill();
+
+            ctx.restore();
         }
     }
-    requestAnimationFrame(drawGrid);
+    requestAnimationFrame(draw);
 }
 
 initGrid();
-drawGrid();
+draw();
