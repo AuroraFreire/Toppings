@@ -1,16 +1,35 @@
+:root {
+    --bgSize: 300px;
+}
+
 html,
 body {
     margin: 0;
     padding: 0;
-    background: #000;
-    color: #ffffff;
-    overflow: hidden;
     height: 100%;
-    font-family: 'Segoe UI', sans-serif;
+    width: 100%;
+    overflow: hidden;
+    background:
+        linear-gradient(rgba(29, 29, 29, 0.9), rgba(29, 29, 29, 0.9)),
+        url('OIU5VX0-removebg-preview.png');
+    background-size: var(--bgSize);
+    animation: movingBg 7.5s linear infinite;
 }
 
 canvas {
     display: block;
     width: 100%;
     height: 100%;
+    position: relative;
+    z-index: 10;
+}
+
+@keyframes movingBg {
+    from {
+        background-position: 0 0;
+    }
+
+    to {
+        background-position: var(--bgSize) var(--bgSize);
+    }
 }

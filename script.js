@@ -51,7 +51,6 @@ function draw() {
     const now = Date.now();
     for (let i = 0; i < grid.length; i++) {
         const cell = grid[i];
-
         if (cell.alpha > 0 && !cell.fading && now - cell.lastTouched > 5) {
             cell.fading = true;
         }
